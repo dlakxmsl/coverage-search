@@ -22,6 +22,19 @@ body{background:var(--paper);color:var(--ink);font-family:-apple-system,'Apple S
 header{padding:16px 16px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--paper);z-index:10;}
 .brand{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:10px;}
 .brand span{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px;}
+/* 모드 탭 */
+.mode-tabs{display:flex;gap:6px;margin-bottom:10px;}
+.mtab{flex:1;padding:8px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--card);font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;text-align:center;}
+.mtab.on{border-color:var(--ink);background:var(--ink);color:#fff;}
+/* 체류코드 카드 */
+.res-card{background:var(--card);border:1px solid var(--line-soft);border-radius:10px;padding:13px 15px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.res-left{flex:1;}
+.res-code{font-weight:700;font-size:15px;color:var(--ink);}
+.res-label{font-size:12px;color:var(--muted);margin-top:2px;}
+.res-note{font-size:11.5px;color:var(--soft);margin-top:6px;line-height:1.6;background:var(--alt);padding:6px 9px;border-radius:6px;}
+.res-status{font-size:13px;font-weight:800;padding:4px 10px;border-radius:6px;white-space:nowrap;}
+.res-status.ok{color:var(--ok);background:rgba(43,108,176,.1);}
+.res-status.no{color:var(--no);background:rgba(178,58,51,.1);}
 /* 상품 필터 */
 .filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
 .fbtn{padding:5px 11px;border-radius:20px;border:1.5px solid var(--line);background:var(--card);font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;}
@@ -73,14 +86,18 @@ main{flex:1;padding:12px 16px 50px;}
 <div id="app">
 <header>
   <div class="brand">새로담는 검색<span>라이나 새로담는건강보험 시리즈</span></div>
-  <div class="filters">
+  <div class="mode-tabs">
+    <button class="mtab on" id="m-uw" onclick="setMode('uw')">질병/한도 검색</button>
+    <button class="mtab" id="m-res" onclick="setMode('res')">외국인체류코드</button>
+  </div>
+  <div class="filters" id="filters-uw">
     <button class="fbtn on" id="f-ALL" onclick="setFilter('ALL')">전체</button>
     <button class="fbtn H" id="f-H" onclick="setFilter('H')">건강심사형플러스</button>
     <button class="fbtn G" id="f-G" onclick="setFilter('G')">일반심사형</button>
     <button class="fbtn E" id="f-E" onclick="setFilter('E')">간편심사형</button>
   </div>
   <input type="text" id="q" placeholder="담보명 또는 질병명 검색 (예: 암진단, 디스크, 골절)" autocomplete="off" autocapitalize="off">
-  <div class="hint">담보한도 + 3N5(132항목) + SI 예외질환(710항목) 수록 · 오프라인 작동</div>
+  <div class="hint" id="hint">담보한도 + 3N5(132항목) + SI 예외질환(710항목) 수록 · 오프라인 작동</div>
 </header>
 <main id="results">
   <div class="empty">담보명이나 질병명을 입력하세요.<br><br>예) "뇌출혈" · "관절" · "디스크" · "암진단" · "양성신생물"</div>
@@ -94,6 +111,48 @@ const UW_CATS=RAW.uwCats;
 const PNAMES=RAW.productNames;
 const PRODUCTS=['H','G','E'];
 let curFilter='ALL';
+let curMode='uw';
+
+const RESIDENCY=[
+{"code":"A-1","label":"외교","ok":false,"note":"외국인등록번호가 없어 청약불가"},
+{"code":"A-2","label":"공무","ok":false},
+{"code":"A-3","label":"협정","ok":false},
+{"code":"B-1","label":"사증면제","ok":false},
+{"code":"B-2","label":"관광통과","ok":false},
+{"code":"C-1","label":"일시취재","ok":false},
+{"code":"C-2","label":"단기상용","ok":false},
+{"code":"C-3","label":"단기종합","ok":false},
+{"code":"C-4","label":"단기취업","ok":false},
+{"code":"D-1","label":"문화예술","ok":true},
+{"code":"D-2","label":"유학","ok":true},
+{"code":"D-3","label":"산업연수","ok":false},
+{"code":"D-4","label":"일반연수","ok":false},
+{"code":"D-5","label":"취재","ok":true},
+{"code":"D-6","label":"종교","ok":true},
+{"code":"D-7","label":"주재","ok":true},
+{"code":"D-8","label":"기업투자","ok":true},
+{"code":"D-9","label":"무역경영","ok":true},
+{"code":"D-10","label":"구직","ok":false},
+{"code":"E-1","label":"교수","ok":true},
+{"code":"E-2","label":"회화지도","ok":false},
+{"code":"E-3","label":"연구","ok":true},
+{"code":"E-4","label":"기술지도","ok":true},
+{"code":"E-5","label":"전문직업","ok":true},
+{"code":"E-6","label":"예술흥행","ok":false},
+{"code":"E-7","label":"특정활동","ok":true},
+{"code":"E-8","label":"연수취업","ok":false},
+{"code":"E-9","label":"비전문취업","ok":false},
+{"code":"E-10","label":"내항선원","ok":false},
+{"code":"F-1","label":"방문동거","ok":false,"note":"가입불가하나 단, 한국인의 외국국적자녀, 한국계 외국인(이중국적자, 국적상실신고미필자 포함), 재외동포의 경우 청약가능"},
+{"code":"F-2","label":"거주","ok":true},
+{"code":"F-3","label":"동반","ok":true,"note":"가입가능하나 단, D-4(일반연수)·E-2(회화지도)·E-6(예술흥행) 자격 외국인의 배우자 및 만 0세 미만 자녀로서 배우자가 없는 외국인의 경우 청약불가"},
+{"code":"F-4","label":"재외동포","ok":true},
+{"code":"F-5","label":"영주자격부여","ok":true},
+{"code":"F-6","label":"결혼이민","ok":true,"note":"11.12.15 신설"},
+{"code":"G-1","label":"기타","ok":false},
+{"code":"H-1","label":"기타","ok":false},
+{"code":"H-2","label":"방문취업","ok":true,"note":"19.12.10 신설"}
+];
 
 function norm(s){return (s||'').toLowerCase().replace(/\s+/g,'').replace(/[,()·\-·]/g,'');}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -185,6 +244,34 @@ function setFilter(f){
   doSearch();
 }
 
+function setMode(m){
+  curMode=m;
+  document.getElementById('m-uw').classList.toggle('on', m==='uw');
+  document.getElementById('m-res').classList.toggle('on', m==='res');
+  document.getElementById('filters-uw').style.display = m==='uw' ? 'flex' : 'none';
+  const q=document.getElementById('q');
+  if(m==='res'){
+    q.placeholder='체류코드 검색 (예: D-7, 방문취업, E-2)';
+    document.getElementById('hint').textContent='외국인 체류코드별 가입 가능 여부 · 코드 또는 체류자격명으로 검색';
+  } else {
+    q.placeholder='담보명 또는 질병명 검색 (예: 암진단, 디스크, 골절)';
+    document.getElementById('hint').textContent='담보한도 + 3N5(132항목) + SI 예외질환(710항목) 수록 · 오프라인 작동';
+  }
+  q.value='';
+  doSearch();
+}
+
+function renderResidency(item){
+  let html='<div class="res-card"><div class="res-left">';
+  html+='<div class="res-code">'+esc(item.code)+'</div>';
+  html+='<div class="res-label">'+esc(item.label)+'</div>';
+  if(item.note) html+='<div class="res-note">'+esc(item.note)+'</div>';
+  html+='</div>';
+  html+='<div class="res-status '+(item.ok?'ok':'no')+'">'+(item.ok?'가입가능':'가입불가')+'</div>';
+  html+='</div>';
+  return html;
+}
+
 
 const UW710=RAW.uw710rows;
 const UW710CATS=RAW.uw710cats;
@@ -219,7 +306,27 @@ function doSearch(){
   const q = document.getElementById('q').value;
   const nq = norm(q);
   const res = document.getElementById('results');
-  
+
+  if(curMode==='res'){
+    if(!nq){
+      res.innerHTML='<div class="empty">체류코드(예: D-7) 또는 체류자격명(예: 방문취업)을 입력하세요.</div>';
+      return;
+    }
+    const matches = RESIDENCY.filter(item=>{
+      if(norm(item.code).includes(nq)) return true;
+      if(norm(item.label).includes(nq)) return true;
+      return false;
+    });
+    if(!matches.length){
+      res.innerHTML='<div class="no-result">검색 결과가 없어요. 체류코드(예: D-7) 또는 체류자격명으로 검색해보세요.</div>';
+      return;
+    }
+    let rhtml='<div class="sec-label">🌏 외국인 체류코드별 가입 유무 ('+matches.length+')</div>';
+    matches.forEach(item=>{ rhtml+=renderResidency(item); });
+    res.innerHTML=rhtml;
+    return;
+  }
+
   if(!nq){
     res.innerHTML='<div class="empty">담보명이나 질병명을 입력하세요.<br><br>예) "뇌출혈" · "관절" · "디스크" · "암진단" · "양성신생물"</div>';
     return;
