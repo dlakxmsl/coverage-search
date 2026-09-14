@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>치아보험 핵심노트 검색</title>
+<style>
+  :root{
+    --navy:#12206b; --navy2:#1a2b8f; --blue:#2b52d6;
+    --lightblue:#eef1fb; --border:#d9dce6; --text:#20233a;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    background:#f0f1f6; color:var(--text); line-height:1.55;}
+  header{background:var(--navy); color:#fff; padding:18px 20px;}
+  header h1{margin:0; font-size:22px;}
+  header p{margin:4px 0 0; font-size:12px; color:#c7cdf5;}
+  .wrap{max-width:1040px; margin:0 auto; padding:16px;}
+
+  .tabs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+  .tab-btn{flex:1 1 150px; padding:11px 6px; text-align:center; font-weight:bold; font-size:14px;
+    background:#dfe3f3; color:var(--navy); border:none; border-radius:8px 8px 0 0; cursor:pointer;}
+  .tab-btn.active{background:var(--navy); color:#fff;}
+  .panel{display:none;} .panel.active{display:block;}
+
+  .search-box{background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;}
+  .search-box input{width:100%; padding:12px 14px; font-size:16px; border:2px solid var(--navy2); border-radius:8px; outline:none;}
+  .search-hint{font-size:12px; color:#666; margin-top:6px;}
+  .prodnav{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+  .prodnav button{padding:9px 12px; border-radius:20px; border:1px solid var(--navy2); background:#fff;
+    color:var(--navy2); font-size:13px; cursor:pointer; font-weight:600;}
+  .prodnav button.on{background:var(--navy2); color:#fff;}
+
+  .card{background:#fff; border:1px solid var(--border); border-radius:10px; margin-bottom:16px; overflow:hidden;}
+  .card-head{background:var(--navy); color:#fff; padding:12px 16px; font-size:16px; font-weight:bold;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;}
+  .card-head .badge{background:#ffd400; color:#12206b; font-size:12px; padding:3px 9px; border-radius:12px; font-weight:bold;}
+  .card-body{padding:14px 16px;}
+  .info-grid{display:grid; grid-template-columns:150px 1fr; gap:6px 10px; font-size:13.5px; margin-bottom:10px;}
+  .info-grid .lbl{color:#555; font-weight:bold;}
+  .note-strip{background:var(--lightblue); border-left:4px solid var(--blue); padding:8px 12px;
+    font-size:12.5px; color:#333; margin:8px 0 12px; border-radius:4px;}
+  .warn-strip{background:#fff6e5; border-left:4px solid #e8a020; padding:8px 12px;
+    font-size:12.5px; color:#5a4000; margin:8px 0 12px; border-radius:4px;}
+  .sec-title{background:#eef0f8; color:var(--navy); font-weight:bold; padding:8px 12px; font-size:14.5px;
+    border-left:5px solid var(--blue); margin:16px 0 8px;}
+  .tbl-scroll{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:6px; min-width:520px;}
+  th,td{border:1px solid var(--border); padding:7px 8px; text-align:center; vertical-align:middle;}
+  th{background:#e4e8f7; color:var(--navy); font-weight:bold;}
+  td.left{text-align:left;}
+  .amt{font-weight:bold; color:var(--navy2);}
+  .rider-name{font-weight:bold; color:var(--navy); text-align:left;}
+  .foot-list{font-size:12.5px; color:#444; margin:6px 0 0; padding-left:18px;}
+  .foot-list li{margin-bottom:3px;}
+  .qa-box{background:#fff7e6; border:1px solid #ffdd8a; border-radius:8px; padding:10px 12px; font-size:12.5px; margin-top:10px;}
+  .qa-box b{color:#a35b00;}
+  .no-result{padding:30px; text-align:center; color:#888; background:#fff; border-radius:10px; border:1px solid var(--border);}
+
+  .claim-common{background:var(--lightblue); border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:14px;}
+  .claim-sec{border:1px solid var(--border); border-radius:8px; margin-bottom:12px; overflow:hidden; background:#fff;}
+  .claim-sec .ch{background:var(--navy); color:#fff; padding:10px 14px; font-weight:bold; font-size:14.5px;}
+  .claim-sec .cb{padding:12px 14px; font-size:13px;}
+  .claim-sec ol,.claim-sec ul{margin:4px 0; padding-left:20px;}
+  .claim-sec .req{background:#f6f7fb; border-radius:6px; padding:8px 10px; margin:6px 0; font-size:12.5px;}
+  .footnote-box{background:#fff3f3; border:1px solid #f3c9c9; border-radius:8px; padding:12px 14px; font-size:12.5px; margin-top:16px;}
+  .footnote-box .ft-title{font-weight:bold; color:#b23a3a; margin-bottom:6px;}
+  .zero-box{background:#eef7ee; border:1px solid #bfe3bf; border-radius:8px; padding:12px 14px; font-size:12.5px; margin-top:14px;}
+
+  .tl{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0;}
+  .tl-item{flex:1 1 150px; background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px; font-size:12.5px;}
+  .tl-item .d{font-weight:bold; color:var(--navy2); font-size:13px; margin-bottom:4px;}
+  .ex-row{background:#fff; border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:8px; font-size:13px;}
+  .ex-row .q{font-weight:bold; color:var(--navy);}
+  .ex-row .a{color:#b23a3a; font-weight:bold; margin-top:4px;}
+  .disclaimer{font-size:11px; color:#999; text-align:center; padding:14px 0;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>치아보험 핵심노트 검색</h1>
+  <p>관리번호: 2026-P-CL-0354(2026.08.28) · 대면영업교육팀 · 내부 참고용(설계사/고객 제시 불가)</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="prod">상품별 보장금액</button>
+    <button class="tab-btn" data-tab="uw">UW 가이드라인</button>
+    <button class="tab-btn" data-tab="rule">면책·감액·지급예시</button>
+    <button class="tab-btn" data-tab="claim">보험금 청구</button>
+    <button class="tab-btn" data-tab="ref">참고자료</button>
+  </div>
+
+  <div class="panel active" id="panel-prod">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="상품명 입력 (예: 건강한, 리셋, 실속, 덴탈어카운트, 간편)">
+      <div class="search-hint">상품명을 입력하면 해당 상품의 전체 보장금액(금도재, 레진, 아말감, 크라운, 임플란트, 틀니, 브릿지 등)이 한 번에 나옵니다.</div>
+    </div>
+    <div class="prodnav" id="prodNav"></div>
+    <div id="prodResult"></div>
+  </div>
+
+  <div class="panel" id="panel-uw"><div id="uwResult"></div></div>
+  <div class="panel" id="panel-rule"><div id="ruleResult"></div></div>
+  <div class="panel" id="panel-claim"><div id="claimResult"></div></div>
+  <div class="panel" id="panel-ref"><div id="refResult"></div></div>
+
+  <div class="disclaimer">※ 자세한 보장내용은 상품설명서 및 약관을 참고 바랍니다. 본 자료는 내부 교육용 자료로 무단 전재 및 복사를 금지합니다.</div>
+</div>
+
+<script>
+const PRODUCTS = [
+  {id:"healthy_basic",  name:"(무)THE건강한치아보험V(갱신형)", short:"건강한치아보험V (기본형)", kw:"건강한 기본형 THE건강한치아보험V"},
+  {id:"healthy_reset",  name:"(무)THE건강한치아보험V(리셋형)(갱신형)", short:"건강한치아보험V (리셋형)", kw:"건강한 리셋형 리셋 THE건강한치아보험V"},
+  {id:"practical",      name:"(무)THE실속있는치아보험(갱신형)", short:"실속있는치아보험", kw:"실속 실속있는"},
+  {id:"dental_account", name:"(무)새로운치아보험:덴탈어카운트(해약환급금미지급형_갱신형)", short:"새로운치아보험 (덴탈어카운트)", kw:"새로운 덴탈어카운트 덴탈 어카운트 새치"},
+  {id:"easy",           name:"(무)THEONE간편치아보험(갱신형)", short:"THEONE 간편치아보험", kw:"간편 THEONE 원 더원"}
+];
+
+const PRODUCT_HTML = {};
+
+/* ---------- 1. 건강한치아보험V (기본형) ---------- */
+PRODUCT_HTML["healthy_basic"] = `
+<div class="card">
+  <div class="card-head"><span>(무)THE건강한치아보험V(갱신형)</span><span class="badge">기본형</span></div>
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="lbl">보험기간/가입나이</div><div>5년 만기 0세~75세 / 10년 만기 0세~70세</div>
+      <div class="lbl">납입기간/납입주기</div><div>전기납 / 월납 (최소보험료 1만원)</div>
+      <div class="lbl">주계약 가입금액</div><div>1,000만원(단일)</div>
+    </div>
+
+    <div class="sec-title">◈ 주계약 보장내용</div>
+    <div class="note-strip">면책 90일 · 감액 1년 이내 50%</div>
+    <div class="tbl-scroll"><table>
+      <tr><th>구분</th><th>보장금액</th><th>1종<br>(연간최대 100만원)</th><th>2종<br>(연간최대 200만원)</th></tr>
+      <tr><td class="left">충전 - 금, 도재(세라믹)</td><td class="amt">15만원</td><td class="amt">15만원</td><td class="amt">30만원</td></tr>
+      <tr><td class="left">충전 - 아말감</td><td class="amt">1만원</td><td class="amt">1만원</td><td class="amt">1만원</td></tr>
+      <tr><td class="left">충전 - 금, 도재, 아말감 이외<br><span style="font-size:11.5px;color:#666">(레진, GI 등)</span></td><td class="amt">5만원</td><td class="amt">5만원</td><td class="amt">5만원</td></tr>
+      <tr><td class="left">크라운<br><span style="font-size:11.5px;color:#666">(2년 이내 3개한, 이후 개수제한 X)</span></td><td class="amt">20만원</td><td class="amt">20만원</td><td class="amt">40만원</td></tr>
+    </table></div>
+
+    <div class="sec-title">◈ 기본형 선택특약</div>
+    <div class="note-strip">단위: 만원 · 공통: 면책 90일, 재해 감액 없음</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="min-width:130px">특약</th><th>최대<br>가입금액</th><th>판매<br>단위</th><th>보장내용</th><th>감액</th><th>UW / 보장한도</th></tr>
+      <tr>
+        <td class="rider-name">보철치료보장Ⅲ<br>보철치료보장Ⅲ_프리미엄</td>
+        <td>60세이하 1,000<br>61세이상 500</td><td>100<br>단일</td>
+        <td class="left">임플란트 100<br>틀니(연1회) 100<br>브릿지 50</td>
+        <td>2년이내<br>50%</td>
+        <td class="left">· 동시부가 불가<br>· 임/브: 연 3개한, 프리미엄은 2년 이후 개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">신보철치료보장<br>신보철치료보장_프리미엄</td>
+        <td>60세이하 1,000<br>61세이상 500</td><td>100<br>단일</td>
+        <td class="left">임플란트 100<br>틀니(연1회) 100<br>브릿지 50<br>재식립임플란트 100</td>
+        <td>2년이내<br>50%</td>
+        <td class="left">· 동시부가 불가<br>· 임/브: 연 3개한, 프리미엄은 2년 이후 개수제한 X<br>· 재식립: 동일부위당 최초 1회</td>
+      </tr>
+      <tr>
+        <td class="rider-name">전치부보철<br>전치부보철_프리미엄</td>
+        <td>500</td><td>100</td>
+        <td class="left">임플란트 50<br>브릿지 25</td>
+        <td>2년이내<br>50%</td>
+        <td class="left">· (의무부가) 보철급부, 보철급부 50% 이내<br>· 연 3개한, 프리미엄 2년 이후 전치부보철 개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">크라운</td><td>3,000</td><td>1,000</td>
+        <td class="left">크라운 30</td><td>1년이내<br>50%</td>
+        <td class="left">2년 이내 연 3개, 이후 개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">전치부크라운</td><td>2,000</td><td>1,000</td>
+        <td class="left">전치부크라운 20</td><td>1년이내<br>50%</td>
+        <td class="left">크라운급부 50% 이내</td>
+      </tr>
+      <tr>
+        <td class="rider-name">충전치료</td><td>3,000</td><td>1,000</td>
+        <td class="left">금, 도재 15<br>금·도재·아말감 이외 3</td><td>1년이내<br>50%</td>
+        <td class="left">개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">소액치과치료</td><td>1,000</td><td>단일</td>
+        <td class="left">치수(신경)치료 2<br>잇몸질환 2<br>영구치발거 2<br>스케일링 1 (연1회)</td><td>-</td>
+        <td class="left">개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">치아추가보장</td><td>1,000</td><td>단일</td>
+        <td class="left">구내/파노라마방사선촬영 각 0.5 (진료 1회당)<br>턱관절장애수술 20 (수술 1회당)<br>턱관절장애입원 1 (4~30일한, 1일당)</td>
+        <td>방사선 -<br>턱관절 1년이내 50%</td>
+        <td class="left">-</td>
+      </tr>
+    </table></div>
+  </div>
+</div>`;
+
+/* ---------- 2. 건강한치아보험V (리셋형) ---------- */
+PRODUCT_HTML["healthy_reset"] = `
+<div class="card">
+  <div class="card-head"><span>(무)THE건강한치아보험V(리셋형)(갱신형)</span><span class="badge">리셋형</span></div>
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="lbl">보험기간/가입나이</div><div>10년 만기 15세~70세</div>
+      <div class="lbl">납입기간/납입주기</div><div>전기납 / 월납 (최소보험료 1만원)</div>
+      <div class="lbl">주계약 가입금액</div><div>1,000만원(단일)</div>
+      <div class="lbl">가입제한</div><div>당사 보철프리미엄, 새치 가입자는 가입불가</div>
+    </div>
+
+    <div class="sec-title">◈ 주계약 보장내용 <span style="font-weight:normal;font-size:12px">(기본형과 동일)</span></div>
+    <div class="note-strip">면책 90일 · 감액 1년 이내 50%</div>
+    <div class="tbl-scroll"><table>
+      <tr><th>구분</th><th>보장금액</th><th>1종<br>(연간최대 100만원)</th><th>2종<br>(연간최대 200만원)</th></tr>
+      <tr><td class="left">충전 - 금, 도재(세라믹)</td><td class="amt">15만원</td><td class="amt">15만원</td><td class="amt">30만원</td></tr>
+      <tr><td class="left">충전 - 아말감</td><td class="amt">1만원</td><td class="amt">1만원</td><td class="amt">1만원</td></tr>
+      <tr><td class="left">충전 - 금, 도재, 아말감 이외<br><span style="font-size:11.5px;color:#666">(레진, GI 등)</span></td><td class="amt">5만원</td><td class="amt">5만원</td><td class="amt">5만원</td></tr>
+      <tr><td class="left">크라운<br><span style="font-size:11.5px;color:#666">(2년 이내 3개한, 이후 개수제한 X)</span></td><td class="amt">20만원</td><td class="amt">20만원</td><td class="amt">40만원</td></tr>
+    </table></div>
+
+    <div class="sec-title">◈ 리셋형 선택특약 — 보철치료보장(리셋형)</div>
+    <div class="note-strip">
+      <b>연간한도 리셋방식</b> · 면책 90일 · 2년 이내 50% <b>(단, 재해 100%)</b><br>
+      UW: (60세이하) 주계약 연간한도의 <b>2배수</b> 이내 가입 가능 / (61세이상) 주계약 연간한도의 <b>1배수</b> 이내 가입 가능
+    </div>
+    <div class="tbl-scroll"><table>
+      <tr><th>구분</th><th>100형<br>(연간최대 100)</th><th>200형<br>(연간최대 200)</th><th>300형<br>(연간최대 300)</th><th>비고</th></tr>
+      <tr><td class="left">임플란트</td><td class="amt">50만원</td><td class="amt">70만원</td><td class="amt">100만원</td><td>연간 2회한</td></tr>
+      <tr><td class="left">틀니</td><td class="amt">50만원</td><td class="amt">70만원</td><td class="amt">100만원</td><td>-</td></tr>
+      <tr><td class="left">브릿지</td><td class="amt">50만원</td><td class="amt">70만원</td><td class="amt">100만원</td><td>-</td></tr>
+    </table></div>
+    <div class="warn-strip">※ 원 자료에는 리셋형 선택특약으로 <b>보철치료보장(리셋형)</b>만 기재되어 있습니다. 기본형 선택특약(보철치료보장Ⅲ·크라운·충전치료 등)의 동시부가 가능 여부는 상품설명서/약관으로 확인 필요.</div>
+  </div>
+</div>`;
+
+/* ---------- 3. 실속있는치아보험 ---------- */
+PRODUCT_HTML["practical"] = `
+<div class="card">
+  <div class="card-head"><span>(무)THE실속있는치아보험(갱신형)</span></div>
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="lbl">보험기간/가입나이</div><div>5년 만기 0세~75세 / 10년 만기 0세~70세</div>
+      <div class="lbl">납입기간/납입주기</div><div>전기납 / 월납</div>
+      <div class="lbl">주계약 가입금액</div><div>1,000만원(단일)</div>
+    </div>
+
+    <div class="sec-title">◈ 주계약 보장내용</div>
+    <div class="note-strip">면책 90일 · 감액 1년 이내 50%</div>
+    <div class="tbl-scroll"><table>
+      <tr><th>구분</th><th>보장금액</th><th>비고</th></tr>
+      <tr><td class="left">충전 - 금, 도재(세라믹)</td><td class="amt">15만원</td><td rowspan="3">치아 치료 1개당 지급</td></tr>
+      <tr><td class="left">충전 - 아말감</td><td class="amt">1만원</td></tr>
+      <tr><td class="left">충전 - 금, 도재, 아말감 이외<br><span style="font-size:11.5px;color:#666">(레진, GI 등)</span></td><td class="amt">5만원</td></tr>
+      <tr><td class="left">크라운</td><td class="amt">20만원</td><td>치아 치료 1개당<br>2년 미만 연간 3개한<br>2년 이후 개수 제한 없음</td></tr>
+    </table></div>
+
+    <div class="sec-title">◈ 선택특약</div>
+    <div class="note-strip">단위: 만원 · 공통: 면책 90일, 재해 감액 없음</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="min-width:110px">특약</th><th>최대<br>가입금액</th><th>판매<br>단위</th><th>보장내용</th><th>감액</th><th>UW / 보장한도</th></tr>
+      <tr>
+        <td class="rider-name">보철치료보장Ⅲ</td>
+        <td>60세이하 1,000<br>61세이상 500</td><td>100<br>단일</td>
+        <td class="left">임플란트 100<br>틀니 100<br>브릿지 50</td>
+        <td>2년이내<br>50%</td>
+        <td class="left">임/브: 연 3개한, 프리미엄은 2년 이후 개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">신보철치료보장</td>
+        <td>60세이하 1,000<br>61세이상 500</td><td>100<br>단일</td>
+        <td class="left">임플란트 100<br>틀니 100<br>브릿지 50<br>재식립임플란트 100</td>
+        <td>2년이내<br>50%</td>
+        <td class="left">임/브: 연 3개한, 프리미엄은 2년 이후 개수제한 X<br>재식립: 동일부위당 최초 1회</td>
+      </tr>
+      <tr>
+        <td class="rider-name">전치부보철</td><td>500</td><td>100</td>
+        <td class="left">임플란트 50<br>브릿지 25</td><td>2년이내<br>50%</td>
+        <td class="left">(의무부가) 보철급부<br>보철급부 50% 이내</td>
+      </tr>
+      <tr>
+        <td class="rider-name">크라운</td><td>3,000</td><td>1,000</td>
+        <td class="left">크라운 30</td><td>1년이내<br>50%</td>
+        <td class="left">2년 이내 연 3개, 이후 개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">전치부크라운</td><td>2,000</td><td>1,000</td>
+        <td class="left">전치부크라운 20</td><td>1년이내<br>50%</td>
+        <td class="left">크라운급부 50% 이내</td>
+      </tr>
+      <tr>
+        <td class="rider-name">충전치료</td><td>3,000</td><td>1,000</td>
+        <td class="left">금, 도재 15<br>금·도재·아말감 이외 3</td><td>1년이내<br>50%</td>
+        <td class="left">개수 제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">소액치과치료</td><td>1,000</td><td>단일</td>
+        <td class="left">치수치료(신경치료) 2<br>주요치주질환(잇몸질환) 2<br>영구치발거 2<br>스케일링 1 (연1회)</td><td>-</td>
+        <td class="left">개수 제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">치아추가보장</td><td>1,000</td><td>단일</td>
+        <td class="left">구내방사선촬영 0.5 (진료 회당)<br>파노라마방사선촬영 0.5 (진료 회당)<br>턱관절장애수술 20 (수술 1회당)<br>턱관절장애입원 1 (4~30일한, 1일당)</td>
+        <td>방사선 -<br>턱관절 1년이내 50%</td>
+        <td class="left">-</td>
+      </tr>
+    </table></div>
+  </div>
+</div>`;
+
+/* ---------- 4. 새로운치아보험(덴탈어카운트) ---------- */
+PRODUCT_HTML["dental_account"] = `
+<div class="card">
+  <div class="card-head"><span>(무)새로운치아보험:덴탈어카운트(해약환급금미지급형_갱신형)</span><span class="badge">감액 없음</span></div>
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="lbl">보험기간/가입나이</div><div>10년 만기 15세~70세 / 20년 만기 15세~60세</div>
+      <div class="lbl">납입기간/납입주기</div><div>전기납 / 월납</div>
+      <div class="lbl">주계약 가입금액</div><div>1,000만원(단일)</div>
+    </div>
+
+    <div class="sec-title">◈ 연간최대보장금액</div>
+    <div class="tbl-scroll"><table>
+      <tr><th>구분</th><th>1형 (기본지원금액형)</th><th>2형 (체증지원금액형)</th></tr>
+      <tr><td class="left">연간최대보장금액</td><td class="amt">200만원</td><td class="amt">5년 이내 200만원<br>6년 이후 400만원</td></tr>
+    </table></div>
+    <div class="note-strip">연간 지급되는 치과치료보험금의 합계는 "연간최대보장금액"을 초과하지 못함</div>
+
+    <div class="sec-title">◈ 치과치료비 지원금액</div>
+    <div class="tbl-scroll"><table>
+      <tr><th>치과치료</th><th>세부치과치료</th><th>첫번째<br>치료비 지원금액</th><th>두번째 이후<br>치료비 지원금액</th></tr>
+      <tr><td rowspan="3">충전치료</td><td class="left">금, 도재</td><td class="amt">1개당 6만원</td><td class="amt">1개당 20만원</td></tr>
+      <tr><td class="left">복합레진</td><td class="amt">1개당 3만원</td><td class="amt">1개당 10만원</td></tr>
+      <tr><td class="left">금·도재·복합레진 이외</td><td class="amt">1개당 3천원</td><td class="amt">1개당 1만원</td></tr>
+      <tr><td>크라운치료</td><td class="left">-</td><td class="amt">1개당 7만 5천원</td><td class="amt">1개당 25만원</td></tr>
+      <tr><td rowspan="3">보철치료</td><td class="left">임플란트</td><td class="amt">1개당 30만원</td><td class="amt">1개당 100만원</td></tr>
+      <tr><td class="left">틀니</td><td class="amt">보철물당 30만원<br>(연 1회한)</td><td class="amt">보철물당 100만원<br>(연 1회한)</td></tr>
+      <tr><td class="left">브릿지</td><td class="amt">1개당 30만원</td><td class="amt">1개당 100만원</td></tr>
+      <tr><td>상급종합병원<br>임플란트</td><td class="left">-</td><td class="amt">1개당 30만원</td><td class="amt">1개당 100만원</td></tr>
+    </table></div>
+    <div class="note-strip">※ 상급종합병원 임플란트치료를 받은 경우, "임플란트치료" + "상급종합병원 임플란트치료" 지급</div>
+    <div class="note-strip"><b>※ 새로운치아보험 덴탈어카운트는 감액 없음</b> (면책 90일은 동일 적용)</div>
+
+    <div class="sec-title">◈ UW 유의사항</div>
+    <div class="qa-box">
+      <b>당·타사 치아보험 기가입자 가입 불가</b><br>
+      (기준 — 당사: 충전, 크라운, 보철치료 가입자 / 타사: 보철치료 가입자)
+    </div>
+  </div>
+</div>`;
+
+/* ---------- 5. THEONE 간편치아보험 ---------- */
+PRODUCT_HTML["easy"] = `
+<div class="card">
+  <div class="card-head"><span>(무)THEONE간편치아보험(갱신형)</span><span class="badge">간편심사</span></div>
+  <div class="card-body">
+    <div class="info-grid">
+      <div class="lbl">보험기간/가입나이</div><div>5년 만기 51세~75세 / 10년 만기 51세~70세</div>
+      <div class="lbl">납입기간/납입주기</div><div>전기납 / 월납</div>
+      <div class="lbl">주계약 가입금액</div><div>1,000만원(단일)</div>
+    </div>
+
+    <div class="sec-title">◈ 주계약 보장내용</div>
+    <div class="note-strip">면책 90일</div>
+    <div class="tbl-scroll"><table>
+      <tr><th>구분</th><th>보장금액</th><th>감액 / 보장제한</th></tr>
+      <tr><td class="left">충전 - 금, 도재(세라믹)</td><td class="amt">15만원</td><td rowspan="3">치아 치료 1개당<br>1년 이내 50%</td></tr>
+      <tr><td class="left">충전 - 아말감</td><td class="amt">1만원</td></tr>
+      <tr><td class="left">충전 - 금, 도재, 아말감 이외<br><span style="font-size:11.5px;color:#666">(레진, GI 등)</span></td><td class="amt">5만원</td></tr>
+      <tr><td class="left">보철 - 임플란트</td><td class="amt">50만원</td><td rowspan="2">영구치 발거 1개당, 연 3개한<br>2년 이내 50%</td></tr>
+      <tr><td class="left">보철 - 브릿지</td><td class="amt">25만원</td></tr>
+      <tr><td class="left">보철 - 틀니</td><td class="amt">50만원</td><td>보철물당, 연 1회<br>2년 이내 50%</td></tr>
+      <tr><td class="left">스케일링</td><td class="amt">1만원</td><td>치료 1회당, 연 1회 (감액 없음)</td></tr>
+    </table></div>
+
+    <div class="sec-title">◈ 선택특약</div>
+    <div class="note-strip">단위: 만원 · 공통: 면책 90일, 재해 감액 없음</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="min-width:110px">특약</th><th>최대<br>가입금액</th><th>판매<br>단위</th><th>보장내용</th><th>감액</th><th>UW / 보장한도</th></tr>
+      <tr>
+        <td class="rider-name">간편보철치료</td><td>500</td><td>100</td>
+        <td class="left">임플란트 50 (연 3개)<br>틀니 50 (보철물당, 연 1회)<br>브릿지 25 (연 3개)</td>
+        <td>2년이내<br>50%</td><td class="left">-</td>
+      </tr>
+      <tr>
+        <td class="rider-name">간편크라운</td><td>5,000</td><td>1,000</td>
+        <td class="left">크라운 50</td><td>1년이내<br>50%</td>
+        <td class="left">크라운급부 50% 이내 가입<br>2년 이내 연 3개, 이후 개수제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">간편충전치료</td><td>3,000</td><td>1,000</td>
+        <td class="left">금, 도재 15<br>금·도재·아말감 이외 3</td><td>1년이내<br>50%</td>
+        <td class="left">개수 제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">간편소액치과치료</td><td>1,000</td><td>단일</td>
+        <td class="left">치수치료(신경치료) 2<br>주요치주질환(잇몸질환)치료 2<br>영구치발거 2<br>스케일링 1 (연1회)</td><td>-</td>
+        <td class="left">개수 제한 X</td>
+      </tr>
+      <tr>
+        <td class="rider-name">치아추가보장</td><td>1,000</td><td>단일</td>
+        <td class="left">구내방사선촬영 0.5 (진료 1회당)<br>파노라마방사선촬영 0.5 (진료 1회당)<br>턱관절장애수술 20 (수술 1회당)<br>턱관절장애입원 1 (4~30일한, 1일당)</td>
+        <td>방사선 -<br>턱관절 1년이내 50%</td><td class="left">-</td>
+      </tr>
+    </table></div>
+
+    <div class="sec-title">◈ 알릴의무사항 (간편심사)</div>
+    <div class="qa-box">
+      <b>Q1.</b> 현재 틀니를 하고 있거나, 최근 <b>1년 이내</b>에 다음의 의료행위를 받았거나 필요하다는 진단을 받은 적이 있습니까?<br>
+      &nbsp;&nbsp;(1) 충치(치아우식증)로 인한 치료(충전치료, 보철치료)<br>
+      &nbsp;&nbsp;(2) 치주질환(잇몸병, 풍치)으로 자연치 상실 또는 치주 수술
+    </div>
+
+    <div class="sec-title">◈ 가입불가 질병 및 증상</div>
+    <ul class="foot-list">
+      <li>틀니</li>
+      <li>1년 이내 치주질환으로 자연치 1개 이상 상실 OR 치주수술(잇몸수술) 받은 경우</li>
+      <li>1년 이내 치주질환으로 치료권유 받은 적이 있는 경우</li>
+      <li>치주 농양(고름)이 있거나 치아가 흔들리는 경우</li>
+      <li>기타 역선택 의심자 등 고위험자: 치근만 남아 있는 경우, 부실고지나 역선택 의심자의 경우 치과소견서 요청 또는 거절</li>
+    </ul>
+  </div>
+</div>`;
+
+/* ===================== UW 가이드라인 탭 ===================== */
+const UW_HTML = `
+<div class="card">
+  <div class="card-head"><span>[UW 가이드라인] 일반심사 치아보험</span></div>
+  <div class="card-body">
+
+    <div class="sec-title">◈ 알릴의무 고지</div>
+    <div class="qa-box">
+      <b>①</b> 현재 틀니를 하고 계십니까?<br><br>
+      <b>②</b> 최근 <b>1년</b> 이내 충치(치아우식증)로 의사로부터 진찰 또는 검사(건강검진 포함)를 통하여 치료(충전치료, 보철치료) 투약과 같은 의료행위를 받은 사실이 있거나, 치료가 필요하다는 진단을 받은 적이 있습니까?<br><br>
+      <b>③</b> 최근 <b>5년</b> 이내 치주질환(잇몸병, 풍치)으로 자연치를 1개 이상 상실하였거나 치주수술(잇몸수술)을 받았거나 치주수술이 필요하다는 진단을 받은 적이 있습니까?
+    </div>
+
+    <div class="sec-title">◈ 치아관련 주계약/특약 가입불가 질병·증상</div>
+    <ul class="foot-list">
+      <li>틀니</li>
+      <li>1년 이내 치주질환으로 자연치 1개 이상 상실 or 치주수술(잇몸수술) 받은 경우</li>
+      <li>1년 이내 치주질환으로 치료권유 받은 적이 있는 경우</li>
+      <li>치주 농양(고름)이 있거나 치아가 흔들리는 경우</li>
+      <li>기타 역선택 의심자 등 고위험자: 치근만 남아 있는 경우, 부실고지나 역선택 의심자의 경우 치과소견서 요청 또는 거절</li>
+    </ul>
+
+    <div class="sec-title">◈ 급부별 최고 가입한도</div>
+    <div class="tbl-scroll"><table>
+      <tr>
+        <th>급부</th>
+        <th>보철</th>
+        <th>보철<br>+ 전치부보철</th>
+        <th colspan="2">크라운</th>
+        <th colspan="2">충전</th>
+      </tr>
+      <tr>
+        <th>세부</th>
+        <th>임플란트<br>+ 치조골</th>
+        <th>-</th>
+        <th>크라운</th>
+        <th>크라운<br>+ 전치부크라운</th>
+        <th>금도재</th>
+        <th>레진</th>
+      </tr>
+      <tr>
+        <th>가입한도</th>
+        <td class="amt">150<br><span style="font-size:11.5px">(61세 이상 100)</span></td>
+        <td class="amt">200</td>
+        <td class="amt">50</td>
+        <td class="amt">60</td>
+        <td class="amt">30</td>
+        <td class="amt">20</td>
+      </tr>
+    </table></div>
+    <div class="note-strip">단위: 만원 (보장금액 기준)</div>
+
+    <div class="sec-title">◈ 가입한도 제한 직종</div>
+    <div class="qa-box">
+      치과 의사, 치위생사, 치기공사 등 <b>치과관련 종사자</b> → 보철급부 한도 제한<br>
+      (임플란트 보장금액 기준 <b>50만원 한도 내</b> 가입 가능)
+    </div>
+
+    <div class="sec-title">◈ 메디컬가이드 — 충치</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="width:130px">심사가능 급부</th><td class="left">치아</td></tr>
+      <tr><th>첨부서류(필요시)</th><td class="left">치과 의사 소견서</td></tr>
+      <tr><th>유의사항</th><td class="left">
+        · 치료 중인 경우 가입 연기<br>
+        · 피보험자의 연령, 치료기간/치료내용(일반적인 치료 양상이 아닌 경우), 합병증 및 동반질환에 따라 심사 결과가 달라질 수 있음
+      </td></tr>
+    </table></div>
+
+    <div class="sec-title">◈ 메디컬가이드 — 치주염, 잇몸질환, 풍치</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="width:130px">심사가능 급부</th><td class="left">치아</td></tr>
+      <tr><th>첨부서류(필요시)</th><td class="left">치과 의사 소견서</td></tr>
+      <tr><th>유의사항</th><td class="left">
+        · 치료 중인 경우 가입 연기<br>
+        · <b>5년 이내 보철치료한 경우 인수 불가</b><br>
+        · 약물치료, 스케일링, 치근활택술, 소파술 후 완치하였다면 검토 가능<br>
+        · 피보험자의 연령, 치료기간/치료내용(일반적인 치료 양상이 아닌 경우), 합병증 및 동반질환에 따라 심사 결과가 달라질 수 있음
+      </td></tr>
+    </table></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>[UW] 간편심사 — THEONE간편치아보험</span></div>
+  <div class="card-body">
+    <div class="qa-box">
+      <b>Q1.</b> 현재 틀니를 하고 있거나, 최근 <b>1년 이내</b>에 다음의 의료행위를 받았거나 필요하다는 진단을 받은 적이 있습니까?<br>
+      &nbsp;&nbsp;(1) 충치(치아우식증)로 인한 치료(충전치료, 보철치료)<br>
+      &nbsp;&nbsp;(2) 치주질환(잇몸병, 풍치)으로 자연치 상실 또는 치주 수술
+    </div>
+    <div class="note-strip">※ 일반심사는 충치 1년 + 치주질환 <b>5년</b> 고지 / 간편심사는 충치·치주질환 모두 <b>1년</b>만 고지</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>[UW] 상품별 가입제한</span></div>
+  <div class="card-body">
+    <div class="tbl-scroll"><table>
+      <tr><th>상품</th><th>가입제한 내용</th></tr>
+      <tr><td class="left">건강한치아보험V (리셋형)</td><td class="left">당사 보철프리미엄, 새치 가입자는 가입불가</td></tr>
+      <tr><td class="left">새로운치아보험<br>(덴탈어카운트)</td><td class="left">당·타사 치아보험 기가입자 가입 불가<br>(당사 기준: 충전·크라운·보철치료 가입자 / 타사 기준: 보철치료 가입자)</td></tr>
+      <tr><td class="left">공통</td><td class="left">치과 의사·치위생사·치기공사 등 치과관련 종사자 → 임플란트 보장금액 50만원 한도 내 가입</td></tr>
+    </table></div>
+  </div>
+</div>`;
+
+/* ===================== 면책·감액·지급예시 탭 ===================== */
+const RULE_HTML = `
+<div class="card">
+  <div class="card-head"><span>보장개시일 · 면책 · 감액</span></div>
+  <div class="card-body">
+    <div class="tl">
+      <div class="tl-item"><div class="d">2024.04.01</div>가입</div>
+      <div class="tl-item"><div class="d">~ 2024.06.30</div>보장제외 (90일 면책)</div>
+      <div class="tl-item"><div class="d">~ 2025.04.01</div>치과치료 50% 감액<br><span style="color:#666">(충전·크라운 등, 1년)</span></div>
+      <div class="tl-item"><div class="d">~ 2026.04.01</div>보철 50% 감액<br><span style="color:#666">(임플란트·틀니·브릿지, 2년)</span></div>
+    </div>
+    <div class="note-strip"><b>※ 새로운치아보험 덴탈어카운트 — 감액 없음</b></div>
+    <div class="note-strip">※ 재해로 인한 경우 감액 없이 100% 보장</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>◈ 보장하지 않는 치과 & 보철치료</span></div>
+  <div class="card-body">
+    <ol class="foot-list" style="font-size:13px">
+      <li>치과치료보장개시일 전에 해당 치과치료를 진단확정 받은 경우</li>
+      <li>보철치료보장개시일 전에 영구치 발거 진단 확정 또는 이미 발거한 경우</li>
+      <li>치아 교모증, 치경부 마모증, 치열교정 준비 등 "치아우식증(충치), 치주질환(잇몸질환) 또는 재해" 이외의 원인으로 치과치료, 보철치료 또는 발거한 경우</li>
+      <li>다른 치과치료를 위하여 임시 치과치료를 한 경우</li>
+      <li>이미 충전치료, 크라운치료를 받은 부위에 대하여 새로운 "치아우식증(충치), 치주질환(잇몸질환) 또는 재해"를 원인으로 하지 않는 수리, 복구, 대체치료를 한 경우</li>
+      <li>이미 틀니치료, 브릿지치료, 임플란트 치료를 받은 부위에 대하여 수리, 복구, 대체치료를 한 경우</li>
+      <li>라미네이트, 잇몸성형 등 미용 상의 치료</li>
+    </ol>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>◈ 재식립임플란트 지급사유</span></div>
+  <div class="card-body">
+    <ol class="foot-list" style="font-size:13px">
+      <li>보험기간 중 임플란트 치료보험금 지급사유 발생 → 그 임플란트 <b>치료일로부터 1년이 지난 날의 다음 날 이후</b> 해당 임플란트를 제거하고 동일 부위에 재식립 임플란트 치료를 받았을 때 (동일부위 당 최초 1회 한도)</li>
+      <li><b>임플란트 치료일</b> = 임플란트의 본체인 인공치근(Fixture)을 식립한 날</li>
+      <li>최초 임플란트에 대해 당사 지급사유에 해당되지 않으면, 재식립 임플란트 치료보험금도 지급받을 수 없음</li>
+    </ol>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>◈ 보철 보험금 지급 예시</span></div>
+  <div class="card-body">
+    <div class="note-strip">가입 2024.04.01 / 보장개시일 2024.06.30 / 치과치료 감액종료 2025.04.01 / 보철 감액종료 2026.04.01</div>
+    <div class="ex-row">
+      <div class="q">① 면책기간(90일) 중 — 치주질환으로 영구치 1개 발거 / 임플란트</div>
+      <div class="a">→ 보장하지 않음</div>
+    </div>
+    <div class="ex-row">
+      <div class="q">② 감액기간 중 — <b>재해로</b> 영구치 1개 발거 / 임플란트</div>
+      <div class="a">→ 임플란트 100% 보장 (재해는 감액 없음)</div>
+    </div>
+    <div class="ex-row">
+      <div class="q">③ 감액기간 중 — 치아우식으로 영구치 2개 발거 후 임플란트 1개만 치료</div>
+      <div class="a">→ 임플란트 50% 보장</div>
+    </div>
+    <div class="ex-row">
+      <div class="q">④ 감액기간 종료 후 — 치아우식으로 영구치 1개 추가 발거, 임플란트 2개 치료 (③에서 발거한 것 + ④에서 발거한 것)</div>
+      <div class="a">→ ③에서 발거한 임플란트 50% + ④에서 발거한 임플란트 100%</div>
+    </div>
+    <div class="warn-strip"><b>핵심 포인트:</b> 지급률은 <b>영구치 발거일</b> 기준으로 결정됩니다. 감액기간 중 발거했다면 임플란트를 감액기간 이후에 심어도 50%만 지급됩니다.</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>◈ 재식립임플란트 보험금 지급 예시</span></div>
+  <div class="card-body">
+    <div class="note-strip">가입 2024.04.01 / 보철치료보장개시일 2024.06.30 (보장제외 90일) / 재식립 부담보기간 1년 → 2025.07.05까지</div>
+    <div class="ex-row">
+      <div class="q">① 2024.07.05 — 영구치 2개 발거 후 임플란트 2개 치료 (상악 1개, 하악 1개)</div>
+      <div class="a">→ 임플란트 치료보험금 2개 50% 감액지급 (보철 감액기간 중)</div>
+    </div>
+    <div class="ex-row">
+      <div class="q">② 2025.04.05 — 최초 치료(2024.07.05)받은 임플란트 중 1개(상악) 재식립</div>
+      <div class="a">→ 재식립 임플란트 치료보험금 부지급 (치료일로부터 1년 미경과)</div>
+    </div>
+    <div class="ex-row">
+      <div class="q">③ 2026.04.05 — 최초 치료받은 임플란트 중 1개(하악) 재식립</div>
+      <div class="a">→ 재식립 임플란트 치료보험금 100% 지급 (1년 경과 + 보철 감액기간 종료)</div>
+    </div>
+  </div>
+</div>`;
+
+/* ===================== 청구 탭 ===================== */
+const CLAIM_HTML = `
+<div class="claim-common">
+  <b>▪ 공통서류</b> : 보험금청구 및 개인(신용)정보 처리 동의서(당사 양식), 수익자 신분증(주민등록증(앞면), 운전면허증, 여권 등) 사본
+</div>
+
+<div class="claim-sec">
+  <div class="ch">치아 보철치료 (임플란트, 브릿지, 틀니)</div>
+  <div class="cb">
+    <ol>
+      <li>공통서류</li>
+      <li>당사 치과치료확인서(치과 병/의원 담당자가 작성) 또는 의료기간 증명서(진단서 등)
+        <div class="req">
+          <b>■ 필수기재사항</b>
+          <ul>
+            <li>내원일(초진일)</li>
+            <li>진단명, 한국표준질병분류번호</li>
+            <li>발거한 영구치의 치아번호, 영구치 발거일<br>(임플란트 재식립 청구의 경우 임플란트 제거 부위 치아번호, 임플란트 제거일)</li>
+            <li>발거 부위에 시행한 보철치료의 종류 및 치료일<br>(<b>임플란트 치료일 : 식립일</b>, 브릿지/틀니 치료일 : 장착일)</li>
+          </ul>
+        </div>
+      </li>
+      <li>치과진료기록 사본(원본대조필)</li>
+      <li>영구치 발거 전후의 X-RAY 또는 파노라마 사진 또는 이에 준하는 판독자료</li>
+    </ol>
+    <div class="note-strip" style="color:#b23a3a">※ 상기 서류 이외 보험금 심사에 필요한 경우 추가로 판독자료를 요청할 수 있음</div>
+  </div>
+</div>
+
+<div class="claim-sec">
+  <div class="ch">치아 충전, 크라운치료</div>
+  <div class="cb">
+    <ol>
+      <li>공통서류</li>
+      <li>당사 치과치료확인서(치과 병/의원 담당자가 작성)
+        <div class="req">
+          <b>■ 필수기재사항</b>
+          <ul>
+            <li>내원일(초진일)</li>
+            <li>진단명, 한국표준질병분류번호</li>
+            <li>치료한 치료번호</li>
+            <li>치료받은 치아의 치료의 종류(치료한 재료 포함)</li>
+            <li>치과치료 종료일(장착일)</li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<div class="claim-sec">
+  <div class="ch">치과 통원</div>
+  <div class="cb">
+    <ol>
+      <li>공통서류</li>
+      <li>국민건강보험법의 요양급여 및 의료급여 항목이 확인되는 통원일자별 진료비 납입 영수증<br>(<b>카드결제 영수증 불가</b>)</li>
+    </ol>
+  </div>
+</div>
+
+<div class="claim-sec">
+  <div class="ch">발치, 치수(신경), 치석제거(스케일링), 치조골이식</div>
+  <div class="cb">
+    <ol>
+      <li>공통서류</li>
+      <li>당사 치과치료확인서(치과 병/의원 담당자가 작성)
+        <div class="req">
+          <b>■ 필수기재사항</b>
+          <ul>
+            <li>내원일(초진일)</li>
+            <li>진단명, 한국표준질병분류번호</li>
+            <li>발거한 영구치의 치아번호, 영구치 발거일</li>
+            <li>치수(신경)치료 치아번호, 치수(신경)치료 완료일</li>
+            <li>보험급여 적용된 치석제거(스케일링) 치료일자</li>
+            <li>골이식 및 골유도재생술 시행 치아번호, 영구치 발거일, 골이식 및 골유도재생술 시행일</li>
+          </ul>
+        </div>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<div class="claim-sec">
+  <div class="ch">주요치주질환(잇몸질환)치료, 방사선촬영</div>
+  <div class="cb">
+    <ol>
+      <li>공통서류</li>
+      <li>당사 치과치료확인서(치과 병/의원 담당자가 작성) 또는 의료기간 증명서(진단서 등)
+        <div class="req">
+          <b>■ 필수기재사항</b>
+          <ul>
+            <li>내원일(초진일)</li>
+            <li>진단명, 한국표준질병분류번호</li>
+            <li>주요치주질환(잇몸질환) 치료부위, 치료내용(치료종류), 치료일자</li>
+            <li>보험급여 적용된 방사선촬영일</li>
+          </ul>
+        </div>
+      </li>
+      <li>국민건강보험법의 요양급여 및 의료급여 항목이 확인되는 요양급여비용명세서 또는 진료비 세부내역서</li>
+    </ol>
+  </div>
+</div>
+
+<div class="footnote-box">
+  <div class="ft-title">▪ 공통 유의사항 (수익자 · 대리수령 · 인감 관련)</div>
+  <ul class="foot-list">
+    <li>입금계좌를 <b>수익자 아닌 타인계좌</b>로 위임할 경우 보험금 수령 위임장(당사양식, 인감날인) 및 원 수익자의 인감증명서(보험금청구 및 수령 위임용)를 첨부해야 함</li>
+    <li><b>수익자가 미성년자</b>인 경우에는 친권자 또는 후견인이 청구 및 수령하여야 하며, 친권 확인을 위한 미성년자(수익자) 기준의 기본증명서, 가족관계증명서와 친권자 서명의 변제의무확인서(당사양식) 또는 대표수익자지정동의서(당사양식, 동의자 인감날인 및 인감증명서 포함)을 첨부해야 함</li>
+    <li>구비서류 중 <b>인감증명서는 본인서명사실확인서로 제출 가능</b>하며, 본인서명사실확인서를 첨부한 경우 본인서명으로 인감날인을 대신함 (단, 본인서명은 본인서명사실확인서에 등록된 서명과 동일해야 함)</li>
+  </ul>
+</div>
+
+<div class="zero-box">
+  <b>◈ 서류 ZERO 청구 서비스</b><br><br>
+  제휴병원에서 <b>치과치료, 입원, 수술, 통원, 골절진단</b>을 받았을 때 번거로운 서류 발급 절차 없이 쉽고 간편하게 보험금 청구 가능<br>
+  · 입원·수술·통원치료, 골절진단 청구는 <b>병원 영업시간 중</b>에만 신청 가능<br>
+  · 치료가 종료되거나 퇴원한 <b>다음 날부터</b> 신청 가능<br><br>
+  <b>FAQ</b><br>
+  <b>Q.</b> 암 진단비, 뇌/심장 질환 진단비 등 진단비 청구도 가능한가요?<br>
+  &nbsp;&nbsp;<b>A.</b> 현재 진단비는 <b>골절진단비만</b> 가능합니다. 치과치료, 입원, 수술, 통원치료비, 골절진단비에 한해 서비스 이용 가능.<br><br>
+  <b>Q.</b> 피보험자와 수익자가 달라도 가능한가요?<br>
+  &nbsp;&nbsp;<b>A.</b> 아니요. 피보험자와 수익자가 <b>동일한 내국인 성인 계약</b>에 한해서만 가능합니다.<br><br>
+  <b>Q.</b> 제휴병원인지 어떻게 알 수 있어요?<br>
+  &nbsp;&nbsp;<b>A.</b> 라이나생명 홈페이지 또는 모바일 앱/웹에서 확인 가능 (사고보험금 청구 → 서류 ZERO청구 → 서비스 이용 가능 병원 확인하기)<br><br>
+  <b>Q.</b> 해당 서비스 이용이 불가능한 경우는 어떻게 청구하나요?<br>
+  &nbsp;&nbsp;<b>A.</b> 서류 업로드 청구(PC/모바일), 팩스, 우편, 방문접수 방식으로 청구할 수 있습니다.
+</div>`;
+
+/* ===================== 참고자료 탭 ===================== */
+const REF_HTML = `
+<div class="card">
+  <div class="card-head"><span>[참고자료] 치과 치료 종류</span></div>
+  <div class="card-body">
+    <div class="tbl-scroll"><table>
+      <tr><th style="width:110px">구분</th><th style="width:70px">발거여부</th><th>치료방법</th></tr>
+      <tr><td>충전</td><td class="amt">X</td><td class="left">치아의 손상된 부위에 충전재를 수복하여 원상 회복시키는 치료<br>· 치료 방식 – 직접충전, 간접충전(인레이, 온레이)<br>· 충전 재료 – 금, 도재(세라믹), 레진, GI(글래스 아이노머), 아말감</td></tr>
+      <tr><td>크라운</td><td class="amt">X</td><td class="left">치관장착(Crown) 치료를 말하며, 치아에 손상이 생겨 삭제량이 많은 경우 또는 신경치료로 인해 치아의 강도가 약해질 것이 예상되는 경우 등에 치아 전체를 금속 등의 재료로 씌우는 치료</td></tr>
+      <tr><td>임플란트</td><td class="amt">O</td><td class="left">상실 치아를 대체하기 위해 잇몸뼈에 티타늄 인공 치근을 심고 그 위에 보철물을 연결하는 치료법</td></tr>
+      <tr><td>브릿지</td><td class="amt">O</td><td class="left">치아와 치아 사이를 다리처럼 연결하여 보철물을 제작하는 방법</td></tr>
+      <tr><td>틀니</td><td class="amt">O</td><td class="left">영구치와 그와 연관된 조직이 결손되었을 때, 인공적으로 대치하는 보철물을 장착하는 시술</td></tr>
+      <tr><td>치수치료<br>(신경치료)</td><td class="amt">X</td><td class="left">치아 내부의 치수를 제거하는 치료</td></tr>
+      <tr><td>영구치 발거</td><td class="amt">O</td><td class="left">영구치를 뽑거나 제거하는 시술</td></tr>
+      <tr><td>주요치주질환<br>(잇몸질환)</td><td class="amt">X</td><td class="left">치아 주위 조직의 염증과 세균에 감염된 치주 조직을 제거하는 치료</td></tr>
+      <tr><td>스케일링</td><td class="amt">X</td><td class="left">플라그와 치석 등을 제거하고, 치아 표면을 매끈하고 깨끗하게 해주는 치료</td></tr>
+    </table></div>
+    <div class="note-strip"><b>발거여부 O</b> = 보철치료 급부 (영구치 발거가 전제) / <b>X</b> = 치과치료 급부</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>[참고자료] 전치부치아 (앞니, 송곳니)</span></div>
+  <div class="card-body">
+    <div class="tbl-scroll"><table>
+      <tr><th>상악(위)</th><td class="amt">13</td><td class="amt">12</td><td class="amt">11</td><td class="amt">21</td><td class="amt">22</td><td class="amt">23</td></tr>
+      <tr><th>하악(아래)</th><td class="amt">43</td><td class="amt">42</td><td class="amt">41</td><td class="amt">31</td><td class="amt">32</td><td class="amt">33</td></tr>
+    </table></div>
+    <div class="note-strip">총 12개 (상악 6개, 하악 6개) · FDI(Federation Dentaire Internationale)에 따른 치아번호</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>[참고자료] 임플란트 구조</span></div>
+  <div class="card-body">
+    <div class="tbl-scroll"><table>
+      <tr><th style="width:200px">구성</th><th>설명</th></tr>
+      <tr><td>임플란트 크라운</td><td class="left">최상단 — 실제 치아 형태의 보철물</td></tr>
+      <tr><td>임플란트 어버트먼트(기둥)</td><td class="left">중간 — 픽스처와 크라운을 연결하는 기둥</td></tr>
+      <tr><td>임플란트 픽스처(Fixture)</td><td class="left">잇몸뼈에 식립하는 인공치근<br><b>※ 임플란트 치료일 = 픽스처 식립일</b></td></tr>
+    </table></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><span>[참고자료] 치과치료확인서 서식</span></div>
+  <div class="card-body">
+    <div class="tbl-scroll"><table>
+      <tr><th>서식</th><th>주요 기재란</th></tr>
+      <tr><td class="left">치과치료확인서<br>(충전, 크라운)</td><td class="left">환자명/주민번호/초진일 · 초진 당시 결손 부위(치아번호 18~48) · 기타치료(스케일링, 구내/파노라마방사선) · 주요치주질환치료(치료부위 A~F, 치주소파술/치근활택술) · 충전(치아번호, 아말감/레진/금/도재세라믹) · 크라운/치수(신경)</td></tr>
+      <tr><td class="left">치과치료확인서<br>(임플란트, 브릿지, 틀니)</td><td class="left">환자명/주민번호/초진일 · 초진 당시 결손 부위 · 기타치료 · 발치 및 보철(영구치 발치, 임플란트/브릿지/틀니, 골이식/골유도재생술, 임플란트제거/재식립) · 질병분류코드 · 발치일 및 치료완료일(장착일)</td></tr>
+    </table></div>
+    <div class="note-strip">※ 병원명(직인) 및 의사(서명)이 누락된 경우 본 치료확인서는 무효</div>
+  </div>
+</div>`;
+
+/* ===================== 렌더링 ===================== */
+const prodNav = document.getElementById('prodNav');
+const prodResult = document.getElementById('prodResult');
+const searchInput = document.getElementById('searchInput');
+
+PRODUCTS.forEach(p=>{
+  const b = document.createElement('button');
+  b.textContent = p.short;
+  b.dataset.id = p.id;
+  b.addEventListener('click', ()=>{ searchInput.value=''; showProducts([p.id]); setActiveNav([p.id]); });
+  prodNav.appendChild(b);
+});
+
+function setActiveNav(ids){
+  Array.prototype.forEach.call(prodNav.children, function(btn){
+    btn.classList.toggle('on', ids.indexOf(btn.dataset.id) !== -1);
+  });
+}
+
+function showProducts(ids){
+  if(ids.length===0){
+    prodResult.innerHTML = '<div class="no-result">일치하는 상품이 없습니다.<br>검색어 예시: 건강한 / 리셋 / 실속 / 덴탈어카운트 / 간편</div>';
+    return;
+  }
+  prodResult.innerHTML = ids.map(function(id){ return PRODUCT_HTML[id]; }).join('');
+}
+
+showProducts(PRODUCTS.map(function(p){return p.id;}));
+
+searchInput.addEventListener('input', function(){
+  const q = searchInput.value.trim();
+  if(q===''){
+    showProducts(PRODUCTS.map(function(p){return p.id;}));
+    setActiveNav([]);
+    return;
+  }
+  const matched = PRODUCTS.filter(function(p){
+    return p.name.indexOf(q)!==-1 || p.short.indexOf(q)!==-1 || p.kw.indexOf(q)!==-1;
+  });
+  showProducts(matched.map(function(p){return p.id;}));
+  setActiveNav(matched.map(function(p){return p.id;}));
+});
+
+document.getElementById('uwResult').innerHTML = UW_HTML;
+document.getElementById('ruleResult').innerHTML = RULE_HTML;
+document.getElementById('claimResult').innerHTML = CLAIM_HTML;
+document.getElementById('refResult').innerHTML = REF_HTML;
+
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    window.scrollTo(0,0);
+  });
+});
+</script>
+</body>
+</html>
